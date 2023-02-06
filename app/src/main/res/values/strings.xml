@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">MobileComputing</string>
+    <string name="search">Search</string>
+    <string name="password">Password</string>
+    <string name="confirmpassword">Confirm Password</string>
+    <string name="oldpassword">Old Password</string>
+    <string name="signup">Sign Up</string>
+    <string name="createaccount">Create Account</string>
+    <string name="check_mark">Check</string>
+    <string name="account">Account</string>
+    <string name="profile">Profile</string>
+    <string name="name">Name</string>
+    <string name="username">Username</string>
+    <string name="save">Save</string>
+    <string name="login">Log In</string>
+    <string name="logout">Log Out</string>
+    <string name="bio">Bio</string>
 </resources>

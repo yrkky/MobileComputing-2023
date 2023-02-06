@@ -14,3 +14,7 @@ dependencyResolutionManagement {
 }
 rootProject.name = "MobileComputing"
 include ':app'
+include ':core_data'
+include ':core-data'
+include ':core-domain'
+include ':core-database'

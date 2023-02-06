@@ -8,6 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.Modifier
 import com.yrkky.mobilecomp.ui.login.LoginScreen
 import androidx.compose.material.Surface
+import com.yrkky.mobilecomp.ui.MobileComputingApp
 import com.yrkky.mobilecomp.ui.theme.MobileComputingTheme
 
 
@@ -20,7 +21,7 @@ class MainActivity : ComponentActivity() {
                 Surface(
                     color = MaterialTheme.colors.background
                 ) {
-                    LoginScreen(modifier = Modifier.fillMaxSize())
+                    MobileComputingApp()
                 }
             }
         }
