@@ -26,7 +26,7 @@ object androidx {
     }
 
     object room {
-        private val version = "2.4.3"
+        private val version = "2.5.0"
         val ktx = "androidx.room:room-ktx:$version"
         val runtime = "androidx.room:room-runtime:$version"
         val compiler = "androidx.room:room-compiler:$version"

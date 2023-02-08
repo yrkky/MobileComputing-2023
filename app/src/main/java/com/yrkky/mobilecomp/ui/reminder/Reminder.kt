@@ -17,11 +17,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.accompanist.insets.systemBarsPadding
 import com.yrkky.mobilecomp.R
+import com.yrkky.core.domain.entity.Reminder
+import java.time.LocalDateTime
 
 @Composable
 fun Reminder(
     navigationController: NavController,
-    onBackPress: () -> Unit
+    onBackPress: () -> Unit,
+    viewModel: ReminderViewModel
 ) {
 
     val reminderName = remember { mutableStateOf("") }
@@ -60,7 +63,21 @@ fun Reminder(
 
 
                 Button(
-                    onClick = {navigationController.navigate("home")},
+                    onClick = {
+                        //navigationController.navigate("home")
+                              viewModel.saveReminder(
+                                  Reminder(
+                                      message = reminderName.value,
+                                      location_x = 0.0,
+                                      location_y = 0.0,
+                                      reminderTime = 1236312,
+                                      creationTime = 1253463,
+                                      creatorId = 1,
+                                      reminderSeen = 12532,
+                                      //date = LocalDateTime()
+                                  )
+                              )
+                    },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(stringResource(R.string.save))

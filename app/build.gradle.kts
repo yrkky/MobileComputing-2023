@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
+    id("com.google.dagger.hilt.android")
     kotlin("android")
+    kotlin("kapt")
 }
 
 android {
@@ -52,12 +54,19 @@ android {
 
 dependencies {
 
+    implementation(project(":core-domain"))
+    implementation(project(":core-database"))
+    implementation(project(":core-data"))
+
     implementation(androidx.core.ktx)
     implementation(androidx.compose.ui.ui)
     implementation(androidx.compose.material)
     implementation(androidx.compose.ui.preview)
     implementation(androidx.lifecycle.runtime_ktx)
     implementation(androidx.activity.activity_compose)
+
+    implementation("com.google.dagger:hilt-android:2.44.2")
+    kapt("com.google.dagger:hilt-android-compiler:2.44")
 
     testImplementation(junit.junit)
     androidTestImplementation(androidx.test.ext.junit)

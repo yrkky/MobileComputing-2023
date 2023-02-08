@@ -4,8 +4,9 @@ import com.yrkky.core.database.dao.ReminderDao
 import com.yrkky.core.database.entity.ReminderEntity
 import com.yrkky.core.domain.entity.Reminder
 import java.time.LocalDateTime
+import javax.inject.Inject
 
-class ReminderDataSourceImpl(
+class ReminderDataSourceImpl @Inject constructor(
     private val reminderDao: ReminderDao
 ) : ReminderDataSource {
 
