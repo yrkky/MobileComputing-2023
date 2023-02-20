@@ -2,8 +2,11 @@ package com.yrkky.core.data.datasource.reminder
 
 import com.yrkky.core.database.dao.ReminderDao
 import com.yrkky.core.database.entity.ReminderEntity
+import com.yrkky.core.domain.entity.Category
 import com.yrkky.core.domain.entity.Reminder
-import java.time.LocalDateTime
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+
 import javax.inject.Inject
 
 class ReminderDataSourceImpl @Inject constructor(
@@ -14,26 +17,50 @@ class ReminderDataSourceImpl @Inject constructor(
         reminderDao.insertOrUpdate(reminder.toEntity())
     }
 
+    override suspend fun loadRemindersFor(category: Category): Flow<List<Reminder>> {
+        return reminderDao.findRemindersByCategory(category.categoryId).map { list ->
+            list.map {
+                it.fromEntity()
+            }
+        }
+    }
+
+    override suspend fun deleteReminder(reminder: Reminder) {
+        reminderDao.delete(reminder.toEntity())
+    }
+
+    override suspend fun loadAllReminders(): List<Reminder> {
+        return reminderDao.findAll().map {
+            it.fromEntity()
+        }
+    }
+
     private fun Reminder.toEntity() = ReminderEntity(
         reminderId = this.reminderId,
+        title = this.title,
         message = this.message,
         location_x = this.location_x,
         location_y = this.location_y,
         reminderTime = this.reminderTime,
         creationTime = this.creationTime,
         creatorId = this.creatorId,
+        categoryId = this.categoryId,
         reminderSeen = this.reminderSeen,
+        icon = this.icon,
     )
 
     private fun ReminderEntity.fromEntity() = Reminder(
         reminderId = this.reminderId,
+        title = this.title,
         message = this.message,
         location_x = this.location_x,
         location_y = this.location_y,
         reminderTime = this.reminderTime,
         creationTime = this.creationTime,
+        categoryId = this.categoryId,
         creatorId = this.creatorId,
         reminderSeen = this.reminderSeen,
+        icon = this.icon,
     )
 
 }

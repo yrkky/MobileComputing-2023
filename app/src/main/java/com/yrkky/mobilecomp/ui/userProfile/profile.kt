@@ -21,11 +21,9 @@ import com.yrkky.mobilecomp.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import com.google.accompanist.insets.systemBarsPadding
-import com.yrkky.mobilecomp.data.entity.UserData
 
 @Composable
 fun Profile(
-    onBackPress: () -> Unit,
     navigationController: NavController,
 ) {
     val username = remember { mutableStateOf("") }
@@ -35,7 +33,7 @@ fun Profile(
 
     fun buttonEnabled(): Boolean {
         return newPassword.value.length >= 8 &&
-                oldPassword.value == UserData().password &&
+                oldPassword.value == "salasana123" &&
                 newPassword.value == confirmPassword.value
     }
 
@@ -49,7 +47,7 @@ fun Profile(
                 modifier= Modifier.fillMaxWidth(),
             ) {
                 IconButton(
-                    onClick = onBackPress
+                    onClick = { navigationController.navigate("home") }
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.ArrowBack,
@@ -81,7 +79,7 @@ fun Profile(
 
                 OutlinedTextField(
                     modifier = Modifier.fillMaxWidth(),
-                    value = UserData().username,
+                    value = "yrkky",
                     onValueChange = {},
                     label = { Text(stringResource(R.string.username))},
                     shape = RoundedCornerShape(corner = CornerSize(20.dp)),

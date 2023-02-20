@@ -39,8 +39,8 @@ dependencies {
 
     implementation(androidx.core.ktx)
 
-    implementation("com.google.dagger:hilt-android:2.44.2")
-    kapt("com.google.dagger:hilt-android-compiler:2.44")
+    implementation(google.dagger.hilt.android)
+    kapt(google.dagger.hilt.compiler)
 
     implementation(androidx.room.ktx)
     implementation(androidx.room.runtime)

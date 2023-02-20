@@ -14,29 +14,42 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.insets.systemBarsPadding
-import com.yrkky.mobilecomp.data.entity.Category
-import com.yrkky.mobilecomp.ui.home.categoryReminder.CategoryReminder
+import com.yrkky.core.domain.entity.Category
+import com.yrkky.mobilecomp.ui.category.CategoryViewState
+import com.yrkky.mobilecomp.ui.reminder.MainViewModel
+import com.yrkky.mobilecomp.ui.reminder.ReminderList
 
 @Composable
 fun Home(
-    viewModel : HomeViewModel = viewModel(),
+    mainViewModel : MainViewModel = hiltViewModel(),
     modifier: Modifier,
     navigationController: NavController
 ) {
-    val viewState by viewModel.state.collectAsState()
-    val selectedCategory = viewState.selectedCategory
+    val viewState by mainViewModel.categoryState.collectAsState()
 
-    if (viewState.categories.isNotEmpty() && selectedCategory != null){
-        Surface(modifier = Modifier.fillMaxSize()) {
-            HomeContent(
-                selectedCategory = selectedCategory,
-                categories = viewState.categories,
-                onCategorySelected = viewModel::onCategorySelected,
-                navigationController = navigationController
-            )
+    when (viewState) {
+        is CategoryViewState.Success -> {
+            val selectedCategory = (viewState as CategoryViewState.Success).selectedCategory
+            val categories = (viewState as CategoryViewState.Success).data
+
+            Surface(modifier = Modifier.fillMaxSize()) {
+                HomeContent(
+                    selectedCategory = selectedCategory!!,
+                    categories = categories,
+                    onCategorySelected = mainViewModel::onCategorySelected,
+                    navigationController = navigationController,
+                    mainViewModel = mainViewModel
+                )
+            }
+        }
+        is CategoryViewState.Error -> {
+
+        }
+        is CategoryViewState.Loading -> {
+
         }
     }
 }
@@ -47,6 +60,7 @@ fun HomeContent(
     categories: List<Category>,
     onCategorySelected: (Category) -> Unit,
     navigationController: NavController,
+    mainViewModel: MainViewModel,
 ) {
     Scaffold(
         modifier = Modifier.padding(bottom = 24.dp),
@@ -54,7 +68,7 @@ fun HomeContent(
             FloatingActionButton(
                 onClick = { navigationController.navigate(route = "reminder") },
                 contentColor = Color.Blue,
-                modifier = Modifier.padding(all = 20.dp)
+                modifier = Modifier.padding(all = 10.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -81,8 +95,10 @@ fun HomeContent(
                 onCategorySelected = onCategorySelected,
             )
 
-            CategoryReminder(
-            modifier = Modifier.fillMaxSize()
+            ReminderList(
+                selectedCategory = selectedCategory,
+                mainViewModel = mainViewModel,
+                navigationController = navigationController
             )
 
         }

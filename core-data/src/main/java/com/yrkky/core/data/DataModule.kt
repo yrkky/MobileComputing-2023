@@ -1,7 +1,13 @@
 package com.yrkky.core.data
 
+import com.yrkky.core.data.datasource.category.CategoryDataSource
+import com.yrkky.core.data.datasource.category.CategoryDataSourceImpl
 import com.yrkky.core.data.datasource.reminder.ReminderDataSource
 import com.yrkky.core.data.datasource.reminder.ReminderDataSourceImpl
+import com.yrkky.core.data.repository.CategoryRepositoryImpl
+import com.yrkky.core.data.repository.ReminderRepositoryImpl
+import com.yrkky.core.domain.repository.CategoryRepository
+import com.yrkky.core.domain.repository.ReminderRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -17,4 +23,23 @@ interface DataModule {
     fun bindReminderDataSource(
         reminderDataSource: ReminderDataSourceImpl
     ): ReminderDataSource
+
+    @Singleton
+    @Binds
+    fun bindPaymentRepository(
+        paymentRepository: ReminderRepositoryImpl
+    ): ReminderRepository
+
+    @Singleton
+    @Binds
+    fun bindCategoryDataSource(
+        categoryDataSource: CategoryDataSourceImpl
+    ): CategoryDataSource
+
+    @Singleton
+    @Binds
+    fun bindCategoryRepository(
+        categoryRepository: CategoryRepositoryImpl
+    ): CategoryRepository
+
 }

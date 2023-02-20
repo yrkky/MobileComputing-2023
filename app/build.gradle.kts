@@ -60,13 +60,21 @@ dependencies {
 
     implementation(androidx.core.ktx)
     implementation(androidx.compose.ui.ui)
-    implementation(androidx.compose.material)
+    implementation(androidx.compose.material.material)
+    implementation(androidx.compose.material.extended)
     implementation(androidx.compose.ui.preview)
-    implementation(androidx.lifecycle.runtime_ktx)
+    implementation(androidx.lifecycle.runtime)
+    implementation(androidx.lifecycle.compose)
+    implementation(androidx.navigation.compose)
     implementation(androidx.activity.activity_compose)
+    implementation(androidx.constraintlayout.compose)
 
-    implementation("com.google.dagger:hilt-android:2.44.2")
-    kapt("com.google.dagger:hilt-android-compiler:2.44")
+    implementation(androidx.appcompat.app.appcompatactivity)
+
+    implementation(google.dagger.hilt.android)
+    kapt(google.dagger.hilt.compiler)
+
+    implementation(androidx.navigation.hilt.compose)
 
     testImplementation(junit.junit)
     androidTestImplementation(androidx.test.ext.junit)
@@ -77,14 +85,14 @@ dependencies {
 
     // Accompanist
     implementation(google.accompanist.insets)
-    // Navigation
-    implementation(androidx.navigation.compose)
-    // ViewModel
-    implementation(androidx.lifecycle.compose)
     // Coroutines
     implementation(kotlinx.coroutines.android.android)
     // ConstraintLayout
     implementation(androidx.constraintlayout.compose)
     // Foundation
     implementation(androidx.compose.foundation.foundation)
+}
+
+kapt {
+    correctErrorTypes = true
 }

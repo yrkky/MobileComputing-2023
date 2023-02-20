@@ -1,15 +1,17 @@
 object androidx {
 
     object core {
-        private val version = "1.7.0"
+        private val version = "1.9.0"
         val ktx = "androidx.core:core-ktx:$version"
     }
 
     object compose {
         private val version = "1.1.1"
-        private val foundation_version = "1.1.0-rc01"
 
-        val material = "androidx.compose.material:material:$version"
+        object material {
+            val material = "androidx.compose.material:material:$version"
+            val extended = "androidx.compose.material:material-icons-extended:$version"
+        }
 
         object ui {
             val ui = "androidx.compose.ui:ui:$version"
@@ -26,7 +28,7 @@ object androidx {
     }
 
     object room {
-        private val version = "2.5.0"
+        private val version = "2.4.3"
         val ktx = "androidx.room:room-ktx:$version"
         val runtime = "androidx.room:room-runtime:$version"
         val compiler = "androidx.room:room-compiler:$version"
@@ -39,10 +41,9 @@ object androidx {
     }
 
     object lifecycle {
-        private val version = "2.3.1"
-        private val viewmodel_version = "2.4.0"
+        private val version = "2.5.1"
 
-        val runtime_ktx = "androidx.lifecycle:lifecycle-runtime-ktx:$version"
+        val runtime = "androidx.lifecycle:lifecycle-runtime-ktx:$version"
         val compose = "androidx.lifecycle:lifecycle-viewmodel-compose:$version"
     }
 
@@ -52,9 +53,21 @@ object androidx {
     }
 
     object navigation {
-        private val version = "2.4.0-rc01"
-
+        private val version = "2.5.3"
         val compose = "androidx.navigation:navigation-compose:$version"
+
+        object hilt {
+            private val version = "1.0.0"
+            val compose = "androidx.hilt:hilt-navigation-compose:$version"
+        }
+    }
+
+    object appcompat {
+        private val version = "1.6.1"
+
+        object app {
+            val appcompatactivity = "androidx.appcompat:appcompat:$version"
+        }
     }
 
     object test {

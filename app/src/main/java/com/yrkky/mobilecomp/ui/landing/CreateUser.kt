@@ -19,7 +19,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.yrkky.mobilecomp.R
-import com.yrkky.mobilecomp.data.entity.UserData
 
 
 @Composable
@@ -86,7 +85,7 @@ fun CreateUserScreen(
 
         Button(
             onClick = {
-                if (UserData().username == username.value && UserData().password == password.value) {
+                if ("yrkky" == username.value && "salasana123" == password.value) {
                     navigationController.navigate("home")
                 }
             },

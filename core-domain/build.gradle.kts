@@ -1,8 +1,6 @@
 plugins {
     id("com.android.library")
-    id("com.google.dagger.hilt.android")
-    kotlin("android")
-    kotlin("kapt")
+    id("org.jetbrains.kotlin.android")
 }
 
 android {
@@ -38,14 +36,9 @@ android {
 dependencies {
 
     implementation(androidx.core.ktx)
-    implementation("com.google.dagger:hilt-android:2.44.2")
-    kapt("com.google.dagger:hilt-android-compiler:2.44")
+    implementation(kotlinx.coroutines.android.android)
 
     testImplementation(junit.junit)
     androidTestImplementation(androidx.test.ext.junit)
     androidTestImplementation(androidx.test.espresso.core)
-}
-
-kapt {
-    correctErrorTypes = true
 }

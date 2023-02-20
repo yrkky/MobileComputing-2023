@@ -3,7 +3,6 @@ plugins {
     id("com.google.dagger.hilt.android")
     kotlin("android")
     kotlin("kapt")
-
 }
 
 android {
@@ -40,10 +39,11 @@ dependencies {
 
     implementation(project(":core-domain"))
     implementation(project(":core-database"))
+
     implementation(androidx.core.ktx)
 
-    implementation("com.google.dagger:hilt-android:2.44.2")
-    kapt("com.google.dagger:hilt-android-compiler:2.44")
+    implementation(google.dagger.hilt.android)
+    kapt(google.dagger.hilt.compiler)
 
     implementation(kotlinx.coroutines.android.android)
     implementation(kotlinx.coroutines.core.core)

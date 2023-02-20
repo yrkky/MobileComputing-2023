@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import com.yrkky.mobilecomp.ui.login.LoginScreen
 import androidx.compose.material.Surface
 import com.yrkky.mobilecomp.navigation.MainNavigation
-import com.yrkky.mobilecomp.ui.MobileComputingApp
+import com.yrkky.mobilecomp.MobileComputingApp
 import com.yrkky.mobilecomp.ui.theme.MobileComputingTheme
 import dagger.hilt.android.AndroidEntryPoint
 
