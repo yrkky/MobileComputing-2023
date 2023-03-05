@@ -18,6 +18,10 @@ class ReminderRepositoryImpl @Inject constructor(
         return reminderDataSource.loadRemindersFor(category)
     }
 
+    override suspend fun editReminder(reminder: Reminder) {
+        reminderDataSource.editReminder(reminder)
+    }
+
     override suspend fun loadAllReminders(): List<Reminder> {
         return reminderDataSource.loadAllReminders()
     }

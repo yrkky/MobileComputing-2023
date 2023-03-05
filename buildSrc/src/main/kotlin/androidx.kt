@@ -82,4 +82,20 @@ object androidx {
         }
     }
 
+    object work {
+        private val work_version = "2.8.0"
+
+        val runtime = "androidx.work:work-runtime:$work_version"
+
+        val runtime_ktx = "androidx.work:work-runtime-ktx:$work_version"
+
+        val rxjava2 = "androidx.work:work-rxjava2:$work_version"
+
+        val gcm = "androidx.work:work-gcm:$work_version"
+
+        val testing = "androidx.work:work-testing:$work_version"
+
+        val multiprocess = "androidx.work:work-multiprocess:$work_version"
+    }
+
 }

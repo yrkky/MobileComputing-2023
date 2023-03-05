@@ -129,8 +129,9 @@ fun EditReminder(
                                 requestPermission = { launcher.launch(Manifest.permission.POST_NOTIFICATIONS) }
                             )
                         }
-                        viewModel.saveReminder(
+                        viewModel.editReminder(
                             Reminder(
+                                reminderId = reminder.reminderId,
                                 title = reminderTitle.value,
                                 message = reminderMessage.value,
                                 location_x = 0.0,

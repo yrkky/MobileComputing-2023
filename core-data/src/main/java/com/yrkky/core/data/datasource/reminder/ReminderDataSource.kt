@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface ReminderDataSource {
     suspend fun addReminder(reminder: Reminder)
+    suspend fun editReminder(reminder: Reminder)
     suspend fun loadRemindersFor(category: Category): Flow<List<Reminder>>
 
     suspend fun loadAllReminders(): List<Reminder>

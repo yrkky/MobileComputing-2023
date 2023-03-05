@@ -30,6 +30,7 @@ import java.time.LocalDateTime
 import java.util.*
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.util.Log
 import android.widget.DatePicker
 import androidx.compose.foundation.background
 import androidx.compose.material.icons.filled.Star
@@ -37,6 +38,8 @@ import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
+import com.yrkky.core.domain.entity.Category
+import org.intellij.lang.annotations.JdkConstants
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -54,6 +57,7 @@ fun Reminder(
     val reminderCategory = remember { mutableStateOf("") }
     val reminderTime = remember { mutableStateOf("") }
     val reminderIcon = remember { mutableStateOf("")}
+    val shouldNotify = remember { mutableStateOf(true) }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -102,7 +106,7 @@ fun Reminder(
                     modifier = Modifier.fillMaxWidth(),
                     value = reminderMessage.value,
                     onValueChange = { reminderMessage_ -> reminderMessage.value = reminderMessage_ },
-                    label = { Text(stringResource(R.string.name)) },
+                    label = { Text(stringResource(R.string.message)) },
                     shape = RoundedCornerShape(corner = CornerSize(10.dp))
                 )
 
@@ -122,6 +126,16 @@ fun Reminder(
                 DatePicker(
                     remindtime = reminderTime,
                 )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly ) {
+                    Text(text = "Enable notifications")
+                    Switch(
+                        checked = shouldNotify.value,
+                        onCheckedChange = { shouldNotify.value = it }
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
@@ -147,7 +161,8 @@ fun Reminder(
                                 categoryId = getCategoryId(viewModel, reminderCategory.value),
                                 reminderSeen = LocalDateTime.now(),
                                 icon = reminderIcon.value,
-                            )
+                            ),
+                            notify = shouldNotify.value
                         )
                         navigationController.popBackStack()
                     },
@@ -170,6 +185,11 @@ private fun CategoryListDropdown(
     category: MutableState<String>
 ) {
     val categoryState = viewModel.categories.collectAsState()
+    var categoryState_withoutAll = categoryState.value.toMutableSet()
+    Log.i("CategoryListDropdown", "categorylist: ${categoryState}")
+    categoryState_withoutAll.remove(Category(categoryId=1, name="All"))
+    Log.i("CategoryListDropdown", "categorylist_withoutAll: ${categoryState_withoutAll}")
+
 
     var expanded by remember { mutableStateOf(false) }
     val icon = if (expanded) {
@@ -198,7 +218,7 @@ private fun CategoryListDropdown(
             onDismissRequest = { expanded = false },
             modifier = Modifier.fillMaxWidth()
         ) {
-            categoryState.value.forEach { dropDownOption ->
+            categoryState_withoutAll.forEach { dropDownOption ->
                 DropdownMenuItem(
                     onClick = {
                         category.value = dropDownOption.name

@@ -12,7 +12,7 @@ import com.yrkky.core.database.utils.Converter
 @Database(
     entities = [ReminderEntity::class, CategoryEntity::class],
     version = 1,
-    //exportSchema = false
+    exportSchema = false
 )
 
 @TypeConverters(Converter::class)

@@ -8,9 +8,11 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.NotificationManagerCompat.from
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.*
 import com.yrkky.core.domain.entity.Category
 import com.yrkky.core.domain.entity.Reminder
 import com.yrkky.core.domain.repository.CategoryRepository
@@ -18,10 +20,13 @@ import com.yrkky.core.domain.repository.ReminderRepository
 import com.yrkky.mobilecomp.Graph
 import com.yrkky.mobilecomp.R
 import com.yrkky.mobilecomp.ui.category.CategoryViewState
+import com.yrkky.mobilecomp.ui.utils.NotificationWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private lateinit var editReminder: Reminder
@@ -43,10 +48,13 @@ class MainViewModel @Inject constructor(
 
     private val _selectedCategory = MutableStateFlow<Category?>(null)
 
-    fun saveReminder(Reminder: Reminder) {
+    fun saveReminder(reminder: Reminder, notify: Boolean) {
         viewModelScope.launch {
-            reminderRepository.addReminder(Reminder)
-            notifyUserOfReminder(Reminder)
+            reminderRepository.addReminder(reminder)
+            if (notify) {
+                notifyUserOfReminder(reminder)
+                setOneTimeNotification(reminder)
+            }
         }
     }
 
@@ -57,6 +65,15 @@ class MainViewModel @Inject constructor(
     fun getEditReminder() : Reminder{
         return editReminder
     }
+
+    fun editReminder(reminder: Reminder) {
+        viewModelScope.launch {
+            reminderRepository.editReminder(reminder)
+            setOneTimeNotification(reminder)
+        }
+    }
+
+
 
     //fun getReminder(reminderId: Long) {
     //    viewModelScope.launch {
@@ -86,7 +103,6 @@ class MainViewModel @Inject constructor(
                     Manifest.permission.POST_NOTIFICATIONS
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
                 // here to request the missing permissions, and then overriding
@@ -112,6 +128,93 @@ class MainViewModel @Inject constructor(
         notificationManager.createNotificationChannel(channel)
     }
 
+    private fun setOneTimeNotification(reminder: Reminder) {
+        val now = Calendar.getInstance()
+
+        val remindertime = Calendar.getInstance()
+        remindertime.set(Calendar.YEAR, reminder.reminderTime.year)
+        remindertime.set(Calendar.MONTH, reminder.reminderTime.monthValue - 1)
+        remindertime.set(Calendar.DAY_OF_MONTH, reminder.reminderTime.dayOfMonth)
+        remindertime.set(Calendar.HOUR_OF_DAY, reminder.reminderTime.hour)
+        remindertime.set(Calendar.MINUTE, reminder.reminderTime.minute)
+        remindertime.set(Calendar.SECOND, 0)
+
+        Log.i("SetOneTimeNotification", "Now: ${now.time} Reminder: ${remindertime.time}")
+
+        val time = remindertime.timeInMillis - now.timeInMillis
+
+        Log.i("SetOneTimeNotification", "Next notification ${reminder.title} will be shown in ${time / 1000} seconds")
+
+        val workManager = WorkManager.getInstance(Graph.appContext)
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val notificationWorker = OneTimeWorkRequestBuilder<NotificationWorker>()
+            .setInitialDelay(time, TimeUnit.MILLISECONDS)
+            .setConstraints(constraints)
+            .build()
+
+        workManager.enqueue(notificationWorker)
+
+        workManager.getWorkInfoByIdLiveData(notificationWorker.id)
+            .observeForever { workInfo ->
+                if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                    createSuccessNotification(reminder)
+                } else {
+                    notifyUserOfReminder(reminder)
+                }
+            }
+    }
+
+    private fun createSuccessNotification(reminder: Reminder) {
+        val notificationId = 10
+        val builder = NotificationCompat.Builder(
+            Graph.appContext,
+            "channel_id"
+        )
+            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setContentTitle("You have reminder ${reminder.title}")
+            .setContentText("${reminder.message}")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+        with(NotificationManagerCompat.from(Graph.appContext)) {
+            if (ActivityCompat.checkSelfPermission(
+                    Graph.appContext,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            notify(notificationId, builder.build())
+        }
+    }
+
+    private fun createFailureNotification(reminder: Reminder) {
+        val notificationId = 10
+        val builder = NotificationCompat.Builder(
+            Graph.appContext,
+            "channel_id"
+        )
+            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setContentTitle("Notification failed")
+            .setContentText("Notification for ${reminder.title} failed")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+        with(NotificationManagerCompat.from(Graph.appContext)) {
+            if (ActivityCompat.checkSelfPermission(
+                    Graph.appContext,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+
+                return
+            }
+            notify(notificationId, builder.build())
+        }
+    }
+
+
     fun loadRemindersFor(category: Category?) {
         if (category != null) {
             viewModelScope.launch {
@@ -123,6 +226,16 @@ class MainViewModel @Inject constructor(
                     )
             }
         }
+    }
+
+    fun loadAllReminders() {
+            viewModelScope.launch {
+                val Reminders = reminderRepository.loadAllReminders()
+                _reminderViewState.value =
+                    ReminderViewState.Success(
+                        Reminders
+                    )
+            }
     }
 
     private suspend fun loadCategories() {
@@ -149,6 +262,7 @@ class MainViewModel @Inject constructor(
     }
 
     private fun fakeData() = listOf(
+        Category(name = "All"),
         Category(name = "School"),
         Category(name = "Family"),
         Category(name = "Work"),
@@ -220,11 +334,11 @@ class MainViewModel @Inject constructor(
                 categoryRepository.addCategory(it)
             }
         }
-        dummyData().forEach {
-            viewModelScope.launch {
-                saveReminder(it)
-            }
-        }
+//        dummyData().forEach {
+//            viewModelScope.launch {
+//                saveReminder(it)
+//            }
+//        }
         viewModelScope.launch {
             loadCategories()
         }

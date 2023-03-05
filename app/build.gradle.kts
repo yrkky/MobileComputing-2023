@@ -91,6 +91,12 @@ dependencies {
     implementation(androidx.constraintlayout.compose)
     // Foundation
     implementation(androidx.compose.foundation.foundation)
+
+    implementation(androidx.work.runtime_ktx)
+    implementation(androidx.work.rxjava2)
+    implementation(androidx.work.gcm)
+    androidTestImplementation(androidx.work.testing)
+    implementation(androidx.work.multiprocess)
 }
 
 kapt {

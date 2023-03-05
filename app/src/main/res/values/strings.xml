@@ -10,9 +10,11 @@
     <string name="account">Account</string>
     <string name="profile">Profile</string>
     <string name="name">Name</string>
+    <string name="message">Message</string>
     <string name="username">Username</string>
     <string name="save">Save</string>
     <string name="login">Log In</string>
     <string name="logout">Log Out</string>
     <string name="bio">Bio</string>
+    <string name="post_notification_request">In order to remind you about reminders, you need to allow notifications</string>
 </resources>

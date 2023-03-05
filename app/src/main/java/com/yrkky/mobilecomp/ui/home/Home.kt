@@ -7,12 +7,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -62,6 +62,8 @@ fun HomeContent(
     navigationController: NavController,
     mainViewModel: MainViewModel,
 ) {
+    val reminderState = remember { mutableStateOf("Passed") }
+
     Scaffold(
         modifier = Modifier.padding(bottom = 24.dp),
         floatingActionButton = {
@@ -95,10 +97,13 @@ fun HomeContent(
                 onCategorySelected = onCategorySelected,
             )
 
+            StateTabs(selectedState = reminderState)
+
             ReminderList(
                 selectedCategory = selectedCategory,
                 mainViewModel = mainViewModel,
-                navigationController = navigationController
+                navigationController = navigationController,
+                selectedState = reminderState
             )
 
         }
@@ -158,6 +163,36 @@ private fun CategoryTabs(
             }
         }
     }
+}
+
+@Composable
+private fun StateTabs(
+    selectedState: MutableState<String>
+) {
+    val tabs = listOf("All", "Upcoming", "Passed")
+    val selectedIndex = tabs.indexOfFirst { it == selectedState.value }
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceAround) {
+        Text(text = "State", textAlign = TextAlign.Center, modifier = Modifier.padding(20.dp))
+        ScrollableTabRow(
+            selectedTabIndex = selectedIndex,
+            edgePadding = 24.dp,
+            indicator = emptyTabIndicator,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            tabs.forEachIndexed { index, state ->
+                Tab(
+                    selected = index == selectedIndex,
+                    onClick = { selectedState.value = state}
+                ) {
+                    ChoiceChipContent(
+                        text = state,
+                        selected = index == selectedIndex,
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 16.dp)
+                    )
+                }
+            }
+        }
+}
 }
 
 @Composable

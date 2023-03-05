@@ -17,6 +17,10 @@ class ReminderDataSourceImpl @Inject constructor(
         reminderDao.insertOrUpdate(reminder.toEntity())
     }
 
+    override suspend fun editReminder(reminder: Reminder) {
+        reminderDao.insertOrUpdate(reminder.toEntity())
+    }
+
     override suspend fun loadRemindersFor(category: Category): Flow<List<Reminder>> {
         return reminderDao.findRemindersByCategory(category.categoryId).map { list ->
             list.map {

@@ -1,5 +1,6 @@
 package com.yrkky.mobilecomp.ui.reminder
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -9,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -20,20 +22,23 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import com.yrkky.core.domain.entity.Category
 import com.yrkky.core.domain.entity.Reminder
+import com.yrkky.mobilecomp.ui.category.CategoryViewState
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 @Composable
 fun ReminderList(
     selectedCategory: Category,
     mainViewModel: MainViewModel,
-    navigationController: NavController
+    navigationController: NavController,
+    selectedState: MutableState<String>
 ) {
-    //if (selectedCategory.name == "All") {
-    //    mainViewModel.loadAllReminders()
-    //} else {
+    if (selectedCategory.name == "All") {
+        mainViewModel.loadAllReminders()
+    } else {
         mainViewModel.loadRemindersFor(selectedCategory)
-    //}
+    }
 
     val reminderViewState by mainViewModel.reminderState.collectAsState()
     when (reminderViewState) {
@@ -41,18 +46,31 @@ fun ReminderList(
         is ReminderViewState.Success -> {
             val reminderList = (reminderViewState as ReminderViewState.Success).data
 
+            val passedReminders = reminderList.filter { it.reminderTime.isBefore(LocalDateTime.now()) }
+            val upcomingReminders = reminderList.filter { it.reminderTime.isAfter(LocalDateTime.now()) }
+
             LazyColumn(
                 contentPadding = PaddingValues(0.dp),
                 verticalArrangement = Arrangement.Center,
             ) {
-                items(reminderList) { item ->
-                    ReminderListItem(
-                        reminder = item,
-                        category = selectedCategory,
-                        onClick = {},
-                        navigationController = navigationController,
-                        mainViewModel = mainViewModel,
-                    )
+                var selectedStateReminders = reminderList
+                when (selectedState.value) {
+                    "Passed" -> {selectedStateReminders = passedReminders}
+                    "Upcoming" -> {selectedStateReminders = upcomingReminders}
+                    "All" -> {selectedStateReminders = reminderList}
+                }
+                items(selectedStateReminders) { item ->
+                    //val reminder_calendartime = Calendar.getInstance()
+                    //reminder_calendartime.set(item.reminderTime.year, item.reminderTime.monthValue-1, item.reminderTime.dayOfMonth, item.reminderTime.hour, item.reminderTime.minute)
+                    //if (reminder_calendartime.timeInMillis <= System.currentTimeMillis()) {
+                        ReminderListItem(
+                            reminder = item,
+                            category = categoryIdToName(mainViewModel, item.categoryId),
+                            onClick = {},
+                            navigationController = navigationController,
+                            mainViewModel = mainViewModel,
+                        )
+                    //}
                 }
             }
         }
@@ -64,7 +82,7 @@ fun ReminderList(
 @Composable
 private fun ReminderListItem(
     reminder: Reminder,
-    category: Category,
+    category: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     navigationController: NavController,
@@ -110,7 +128,7 @@ private fun ReminderListItem(
 
         // category
         Text(
-            text = category.name,
+            text = category,
             maxLines = 1,
             style = MaterialTheme.typography.subtitle2,
             modifier = Modifier.constrainAs(categoryRef) {
@@ -191,4 +209,20 @@ private fun nameToIcon(name: String) : ImageVector {
             Icons.Outlined.StarOutline
         }
     }
+}
+
+@Composable
+private fun categoryIdToName(viewModel: MainViewModel, id: Long): String {
+    val viewState by viewModel.categoryState.collectAsState()
+
+    when (viewState) {
+        is CategoryViewState.Success -> {
+            val categories = (viewState as CategoryViewState.Success).data
+            Log.i("categoryToName", "ID: ${id}")
+            val filtered = categories.filter { it.categoryId.equals(id) }
+            Log.i("categoryToName", "FOUND: ${filtered.first().name}")
+            return filtered.first().name
+        }
+    }
+    return "Uncategorized"
 }
