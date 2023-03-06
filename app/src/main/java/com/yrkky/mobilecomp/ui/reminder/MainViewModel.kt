@@ -3,7 +3,9 @@ package com.yrkky.mobilecomp.ui.reminder
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.core.app.ActivityCompat
@@ -25,6 +27,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -86,7 +90,9 @@ class MainViewModel @Inject constructor(
         _selectedCategory.value = category
     }
 
-    private fun notifyUserOfReminder(Reminder: Reminder) {
+    private fun notifyUserOfReminder(reminder: Reminder) {
+        val formattedTime = LocalDateTime.parse(reminder.reminderTime.toString()).format(
+            DateTimeFormatter.ofPattern("dd.MM.yyyy HH.mm"))
         val notificationId = 10
         val builder = NotificationCompat.Builder(
             Graph.appContext,
@@ -94,8 +100,9 @@ class MainViewModel @Inject constructor(
         )
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("New Reminder made")
-            .setContentText("Will remind ${Reminder.title} on ${Reminder.reminderTime}")
+            .setContentText("Will remind ${reminder.title} on ${formattedTime}")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setStyle(NotificationCompat.BigPictureStyle().setBigContentTitle("New Reminder made"))
 
         with(from(Graph.appContext)) {
             if (ActivityCompat.checkSelfPermission(
@@ -132,17 +139,18 @@ class MainViewModel @Inject constructor(
         val now = Calendar.getInstance()
 
         val remindertime = Calendar.getInstance()
-        remindertime.set(Calendar.YEAR, reminder.reminderTime.year)
-        remindertime.set(Calendar.MONTH, reminder.reminderTime.monthValue - 1)
-        remindertime.set(Calendar.DAY_OF_MONTH, reminder.reminderTime.dayOfMonth)
-        remindertime.set(Calendar.HOUR_OF_DAY, reminder.reminderTime.hour)
-        remindertime.set(Calendar.MINUTE, reminder.reminderTime.minute)
-        remindertime.set(Calendar.SECOND, 0)
+        //simpler way than below:
+        remindertime.time = Date.from(reminder.reminderTime.atZone(ZoneId.systemDefault()).toInstant())
+
+//        remindertime.set(Calendar.YEAR, reminder.reminderTime.year)
+//        remindertime.set(Calendar.MONTH, reminder.reminderTime.monthValue - 1)
+//        remindertime.set(Calendar.DAY_OF_MONTH, reminder.reminderTime.dayOfMonth)
+//        remindertime.set(Calendar.HOUR_OF_DAY, reminder.reminderTime.hour)
+//        remindertime.set(Calendar.MINUTE, reminder.reminderTime.minute)
+//        remindertime.set(Calendar.SECOND, 0)
 
         Log.i("SetOneTimeNotification", "Now: ${now.time} Reminder: ${remindertime.time}")
-
         val time = remindertime.timeInMillis - now.timeInMillis
-
         Log.i("SetOneTimeNotification", "Next notification ${reminder.title} will be shown in ${time / 1000} seconds")
 
         val workManager = WorkManager.getInstance(Graph.appContext)
@@ -169,6 +177,14 @@ class MainViewModel @Inject constructor(
 
     private fun createSuccessNotification(reminder: Reminder) {
         val notificationId = 10
+        val intent = Intent()
+        val context = Graph.appContext
+        intent.setClassName(context, "com.yrkky.mobilecomp.MainActivity").apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+
         val builder = NotificationCompat.Builder(
             Graph.appContext,
             "channel_id"
@@ -177,6 +193,8 @@ class MainViewModel @Inject constructor(
             .setContentTitle("You have reminder ${reminder.title}")
             .setContentText("${reminder.message}")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setStyle(NotificationCompat.BigPictureStyle().setBigContentTitle("${reminder.title}"))
 
         with(NotificationManagerCompat.from(Graph.appContext)) {
             if (ActivityCompat.checkSelfPermission(
