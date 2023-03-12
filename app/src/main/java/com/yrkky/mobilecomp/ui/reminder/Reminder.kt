@@ -33,15 +33,21 @@ import android.app.TimePickerDialog
 import android.util.Log
 import android.widget.DatePicker
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.lifecycle.ViewModel
+import com.google.android.gms.maps.model.LatLng
 import com.yrkky.core.domain.entity.Category
-import org.intellij.lang.annotations.JdkConstants
-import java.time.LocalDate
-import java.time.LocalTime
+import com.yrkky.mobilecomp.ui.utils.GeofenceUtils
+import java.text.ParseException
+import java.text.SimpleDateFormat
 import java.time.format.DateTimeFormatter
 import kotlin.collections.ArrayList
 
@@ -52,22 +58,36 @@ fun Reminder(
     viewModel: MainViewModel = hiltViewModel(),
 ) {
 
+    val context = LocalContext.current
     val reminderTitle = remember { mutableStateOf("") }
     val reminderMessage = remember { mutableStateOf("") }
     val reminderCategory = remember { mutableStateOf("") }
     val reminderTime = remember { mutableStateOf("") }
     val reminderIcon = remember { mutableStateOf("")}
     val shouldNotify = remember { mutableStateOf(true) }
+    val geofencer = remember { GeofenceUtils(context)}
+    var longitude = remember { mutableStateOf(0.0)}
+    var latitude = remember { mutableStateOf(0.0)}
+    var offset by remember { mutableStateOf(0f) }
+
+    val latlng = navigationController
+        .currentBackStackEntry
+        ?.savedStateHandle
+        ?.getLiveData<LatLng>("location_data")
+        ?.value
+
+    if (latlng != null) {
+        longitude.value = latlng.longitude
+        latitude.value = latlng.latitude
+    }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = {}
     )
-    val context = LocalContext.current
 
     fun buttonEnabled(): Boolean {
-        return reminderTitle.value.isNotEmpty() && reminderCategory.value.isNotEmpty() &&
-            reminderTime.value.isNotEmpty()
+        return reminderTitle.value.isNotEmpty() && reminderCategory.value.isNotEmpty()
     }
 
     Surface {
@@ -75,6 +95,12 @@ fun Reminder(
             modifier = Modifier
                 .fillMaxSize()
                 .systemBarsPadding()
+                .scrollable(
+                    state = rememberScrollableState { delta ->
+                        offset += delta
+                        delta
+                        },
+                    orientation = Orientation.Vertical)
         ) {
             TopAppBar {
                 IconButton(
@@ -129,12 +155,34 @@ fun Reminder(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.height(20.dp)
+                ) {
                     Text(text = "Enable notifications")
                     Switch(
                         checked = shouldNotify.value,
                         onCheckedChange = { shouldNotify.value = it }
                     )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                LocationPicker(latlng)
+                OutlinedButton(
+                    onClick = {
+                        requestPermission(
+                            context = context,
+                            permission = Manifest.permission.ACCESS_FINE_LOCATION,
+                            requestPermission = { launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }
+                        ).apply {
+                            navigationController.navigate("map")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = "Reminder location")
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -149,12 +197,31 @@ fun Reminder(
                                 requestPermission = { launcher.launch(Manifest.permission.POST_NOTIFICATIONS) }
                             )
                         }
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            requestPermission(
+                                context = context,
+                                permission = Manifest.permission.ACCESS_FINE_LOCATION,
+                                requestPermission = { launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }
+                            )
+                        }
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            requestPermission(
+                                context = context,
+                                permission = Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+                                requestPermission = { launcher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION) }
+                            )
+                        }
+
+
+
                         viewModel.saveReminder(
                             Reminder(
                                 title = reminderTitle.value,
                                 message = reminderMessage.value,
-                                location_x = 0.0,
-                                location_y = 0.0,
+                                location_x = longitude.value,
+                                location_y = latitude.value,
                                 reminderTime = LocalDateTime.parse(reminderTime.value),
                                 creationTime = LocalDateTime.now(),
                                 creatorId = 1,
@@ -172,6 +239,46 @@ fun Reminder(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun LocationPicker(
+    latlng: LatLng?
+) {
+
+    val latitude = remember { mutableStateOf("") }
+    val longitude = remember { mutableStateOf("") }
+
+    if (latlng == null) {
+        latitude.value = "No Location Set"
+        longitude.value = "No Location Set"
+    } else {
+        latitude.value = latlng.latitude.toString()
+        longitude.value = latlng.longitude.toString()
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
+        OutlinedTextField(
+            modifier = Modifier.width(LocalConfiguration.current.screenWidthDp.dp / 100 * 48).padding(5.dp),
+            value = longitude.value.substring(0, latitude.value.length - 4),
+            onValueChange = { longitude_ ->
+                longitude.value = longitude_
+            },
+            label = { Text(stringResource(R.string.longitude)) },
+            shape = RoundedCornerShape(corner = CornerSize(10.dp)),
+            readOnly = true
+        )
+        OutlinedTextField(
+            modifier = Modifier.width(LocalConfiguration.current.screenWidthDp.dp / 100 * 48).padding(5.dp),
+            value = latitude.value.substring(0, latitude.value.length - 4),
+            onValueChange = { latitude_ ->
+                latitude.value = latitude_
+            },
+            label = { Text(stringResource(R.string.latitude)) },
+            shape = RoundedCornerShape(corner = CornerSize(10.dp)),
+            readOnly = true
+        )
     }
 }
 
@@ -306,7 +413,6 @@ private fun DatePicker(
             Text(text = "Pick Date & Time")
         }
 
-        Spacer(modifier = Modifier.size(15.dp))
     }
 
 }

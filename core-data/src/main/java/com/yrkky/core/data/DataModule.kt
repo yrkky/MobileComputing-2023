@@ -26,8 +26,8 @@ interface DataModule {
 
     @Singleton
     @Binds
-    fun bindPaymentRepository(
-        paymentRepository: ReminderRepositoryImpl
+    fun bindReminderRepository(
+        reminderRepository: ReminderRepositoryImpl
     ): ReminderRepository
 
     @Singleton

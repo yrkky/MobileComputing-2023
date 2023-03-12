@@ -83,13 +83,9 @@ dependencies {
     debugImplementation(androidx.compose.ui.ui_tooling)
     debugImplementation(androidx.compose.ui.ui_test_manifest)
 
-    // Accompanist
     implementation(google.accompanist.insets)
-    // Coroutines
     implementation(kotlinx.coroutines.android.android)
-    // ConstraintLayout
     implementation(androidx.constraintlayout.compose)
-    // Foundation
     implementation(androidx.compose.foundation.foundation)
 
     implementation(androidx.work.runtime_ktx)
@@ -97,6 +93,14 @@ dependencies {
     implementation(androidx.work.gcm)
     androidTestImplementation(androidx.work.testing)
     implementation(androidx.work.multiprocess)
+
+    // Maps dependencies
+    implementation(google.maps.android.maps.ktx)
+    implementation(google.maps.android.maps.utils)
+    implementation(google.maps.android.gms.play_maps)
+    implementation(google.maps.android.maps_utils)
+    implementation(google.maps.android.gms.play_location)
+
 }
 
 kapt {

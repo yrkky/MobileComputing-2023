@@ -1,5 +1,10 @@
 package com.yrkky.mobilecomp.ui.home
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import com.yrkky.mobilecomp.R
@@ -11,16 +16,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.google.accompanist.insets.systemBarsPadding
+import com.google.android.gms.maps.model.LatLng
 import com.yrkky.core.domain.entity.Category
 import com.yrkky.mobilecomp.ui.category.CategoryViewState
 import com.yrkky.mobilecomp.ui.reminder.MainViewModel
 import com.yrkky.mobilecomp.ui.reminder.ReminderList
+import java.math.RoundingMode
+import java.text.DecimalFormat
 
 @Composable
 fun Home(
@@ -29,6 +39,21 @@ fun Home(
     navigationController: NavController
 ) {
     val viewState by mainViewModel.categoryState.collectAsState()
+
+    var longitude = remember { mutableStateOf(0.0)}
+    var latitude = remember { mutableStateOf(0.0)}
+    val filterNearby = remember { mutableStateOf(false) }
+
+    val latlng = navigationController
+        .currentBackStackEntry
+        ?.savedStateHandle
+        ?.getLiveData<LatLng>("location_data")
+        ?.value
+
+    if (latlng != null) {
+        longitude.value = latlng.longitude
+        latitude.value = latlng.latitude
+    }
 
     when (viewState) {
         is CategoryViewState.Success -> {
@@ -41,7 +66,10 @@ fun Home(
                     categories = categories,
                     onCategorySelected = mainViewModel::onCategorySelected,
                     navigationController = navigationController,
-                    mainViewModel = mainViewModel
+                    mainViewModel = mainViewModel,
+                    latitude = latitude,
+                    longitude = longitude,
+                    filterNearby = filterNearby
                 )
             }
         }
@@ -61,6 +89,9 @@ fun HomeContent(
     onCategorySelected: (Category) -> Unit,
     navigationController: NavController,
     mainViewModel: MainViewModel,
+    latitude: MutableState<Double>,
+    longitude: MutableState<Double>,
+    filterNearby: MutableState<Boolean>
 ) {
     val reminderState = remember { mutableStateOf("Passed") }
 
@@ -78,6 +109,7 @@ fun HomeContent(
                 )
             }
         }
+
     ) {
         Column(
             modifier = Modifier
@@ -99,11 +131,21 @@ fun HomeContent(
 
             StateTabs(selectedState = reminderState)
 
+            NearbyReminders(
+                navigationController = navigationController,
+                latitude = latitude,
+                longitude = longitude,
+                filterNearby = filterNearby,
+            )
+
             ReminderList(
                 selectedCategory = selectedCategory,
                 mainViewModel = mainViewModel,
                 navigationController = navigationController,
-                selectedState = reminderState
+                selectedState = reminderState,
+                latitude = latitude,
+                longitude = longitude,
+                filterNearby = filterNearby
             )
 
         }
@@ -192,7 +234,79 @@ private fun StateTabs(
                 }
             }
         }
+    }
 }
+
+@Composable
+private fun NearbyReminders(
+    navigationController: NavController,
+    latitude: MutableState<Double>,
+    longitude: MutableState<Double>,
+    filterNearby: MutableState<Boolean>
+) {
+    val context = LocalContext.current
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = {}
+    )
+
+    val df = DecimalFormat("#.######")
+    df.roundingMode = RoundingMode.HALF_UP
+
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        modifier = Modifier.fillMaxWidth()
+            .height(75.dp)
+    ) {
+
+        Column(modifier = Modifier.padding(horizontal = 15.dp)) {
+
+            Row {
+                Text("Nearby Reminder location \n Lat: ${df.format(latitude.value)} Long: ${df.format(longitude.value)}")
+
+                OutlinedButton(
+                    onClick = {
+                        requestPermission(
+                            context = context,
+                            permission = Manifest.permission.ACCESS_FINE_LOCATION,
+                            requestPermission = { launcher.launch(Manifest.permission.ACCESS_FINE_LOCATION) }
+                        ).apply {
+                            navigationController.navigate("map")
+                        }
+                    },
+                    modifier = Modifier.width(100.dp)
+                ) {
+                    Text(text = "Location Filter")
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
+                Text("Enable filter")
+                Switch(
+                    checked = filterNearby.value,
+                    onCheckedChange = { filterNearby.value = it }
+                )
+
+            }
+        }
+
+    }
+
+
+}
+
+private fun requestPermission(
+    context: Context,
+    permission: String,
+    requestPermission: () -> Unit
+) {
+    if (ContextCompat.checkSelfPermission(
+            context,
+            permission
+        ) != PackageManager.PERMISSION_GRANTED
+    ) {
+        requestPermission()
+    }
 }
 
 @Composable

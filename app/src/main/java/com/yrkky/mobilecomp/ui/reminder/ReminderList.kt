@@ -23,6 +23,7 @@ import androidx.navigation.NavController
 import com.yrkky.core.domain.entity.Category
 import com.yrkky.core.domain.entity.Reminder
 import com.yrkky.mobilecomp.ui.category.CategoryViewState
+import java.lang.Math.abs
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -32,7 +33,10 @@ fun ReminderList(
     selectedCategory: Category,
     mainViewModel: MainViewModel,
     navigationController: NavController,
-    selectedState: MutableState<String>
+    selectedState: MutableState<String>,
+    latitude: MutableState<Double>,
+    longitude: MutableState<Double>,
+    filterNearby: MutableState<Boolean>
 ) {
     if (selectedCategory.name == "All") {
         mainViewModel.loadAllReminders()
@@ -49,6 +53,7 @@ fun ReminderList(
             val passedReminders = reminderList.filter { it.reminderTime.isBefore(LocalDateTime.now()) }
             val upcomingReminders = reminderList.filter { it.reminderTime.isAfter(LocalDateTime.now()) }
 
+
             LazyColumn(
                 contentPadding = PaddingValues(0.dp),
                 verticalArrangement = Arrangement.Center,
@@ -58,6 +63,9 @@ fun ReminderList(
                     "Passed" -> {selectedStateReminders = passedReminders}
                     "Upcoming" -> {selectedStateReminders = upcomingReminders}
                     "All" -> {selectedStateReminders = reminderList}
+                }
+                if (filterNearby.value) {
+                    selectedStateReminders = filterNearbyReminders(selectedStateReminders, latitude.value, longitude.value)
                 }
                 items(selectedStateReminders) { item ->
                     //val reminder_calendartime = Calendar.getInstance()
@@ -76,6 +84,21 @@ fun ReminderList(
         }
     }
 
+}
+
+private fun filterNearbyReminders(reminders: List<Reminder>, latitude: Double, longitude: Double): List<Reminder> {
+    val nearbyReminders = reminders.filter { reminder ->
+        if (reminder.location_x == null || reminder.location_y == null) {
+            return@filter false
+        }
+
+        val latitudeDifference = kotlin.math.abs(reminder.location_y - latitude)
+        val longitudeDifference = kotlin.math.abs(reminder.location_x - longitude)
+
+        // reminder that are inside ~1km
+        latitudeDifference <= 0.009009 && longitudeDifference <= 0.009009
+    }
+    return nearbyReminders
 }
 
 

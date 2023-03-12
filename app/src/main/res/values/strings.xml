@@ -17,4 +17,6 @@
     <string name="logout">Log Out</string>
     <string name="bio">Bio</string>
     <string name="post_notification_request">In order to remind you about reminders, you need to allow notifications</string>
+    <string name="longitude">Longitude</string>
+    <string name="latitude">Latitude</string>
 </resources>

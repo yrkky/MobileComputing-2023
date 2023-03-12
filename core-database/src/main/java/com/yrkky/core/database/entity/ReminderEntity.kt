@@ -14,8 +14,8 @@ import java.time.LocalDateTime
             entity = CategoryEntity::class,
             parentColumns = ["categoryId"],
             childColumns = ["category_id"],
-            onUpdate = ForeignKey.CASCADE, // when a category is updated, we update all associated payments
-            onDelete = ForeignKey.CASCADE // when a category is deleted, we delete all payments associated with it
+            onUpdate = ForeignKey.CASCADE, // when a category is updated, we update all associated reminders
+            onDelete = ForeignKey.CASCADE // when a category is deleted, we delete all reminders associated with it
         )
     ]
 )

@@ -16,4 +16,27 @@ object google {
         }
     }
 
+    object maps {
+        object android {
+            private val version = "2.2.3"
+
+            val maps_utils = "com.google.maps.android:android-maps-utils:$version"
+
+            object maps {
+                private val version = "3.3.0"
+
+                val ktx = "com.google.maps.android:maps-ktx:$version"
+                val utils = "com.google.maps.android:maps-utils-ktx:$version"
+            }
+
+            object gms {
+                private val version = "18.0.0"
+
+                val play_maps = "com.google.android.gms:play-services-maps:$version"
+                val play_location = "com.google.android.gms:play-services-location:$version"
+            }
+
+        }
+    }
+
 }

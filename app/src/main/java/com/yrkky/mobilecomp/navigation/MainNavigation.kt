@@ -10,6 +10,7 @@ import com.yrkky.mobilecomp.ui.home.Home
 import com.yrkky.mobilecomp.ui.landing.CreateUserScreen
 import com.yrkky.mobilecomp.ui.landing.LandingScreen
 import com.yrkky.mobilecomp.ui.login.LoginScreen
+import com.yrkky.mobilecomp.ui.maps.ReminderLocation
 import com.yrkky.mobilecomp.ui.reminder.EditReminder
 import com.yrkky.mobilecomp.ui.reminder.Reminder
 import com.yrkky.mobilecomp.ui.userProfile.Profile
@@ -41,7 +42,10 @@ fun MainNavigation() {
             Profile(navigationController = navigationController)
         }
         composable(route = "editreminder") {
-                EditReminder(navigationController = navigationController)
+            EditReminder(navigationController = navigationController)
+        }
+        composable(route = "map") {
+            ReminderLocation(navigationController = navigationController)
         }
     }
 }
