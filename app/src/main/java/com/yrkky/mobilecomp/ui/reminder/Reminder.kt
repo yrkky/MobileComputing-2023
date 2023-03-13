@@ -214,14 +214,12 @@ fun Reminder(
                             )
                         }
 
-
-
                         viewModel.saveReminder(
                             Reminder(
                                 title = reminderTitle.value,
                                 message = reminderMessage.value,
-                                location_x = longitude.value,
-                                location_y = latitude.value,
+                                location_x = latitude.value,
+                                location_y = longitude.value,
                                 reminderTime = LocalDateTime.parse(reminderTime.value),
                                 creationTime = LocalDateTime.now(),
                                 creatorId = 1,
@@ -260,18 +258,8 @@ private fun LocationPicker(
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly) {
         OutlinedTextField(
-            modifier = Modifier.width(LocalConfiguration.current.screenWidthDp.dp / 100 * 48).padding(5.dp),
-            value = longitude.value.substring(0, latitude.value.length - 4),
-            onValueChange = { longitude_ ->
-                longitude.value = longitude_
-            },
-            label = { Text(stringResource(R.string.longitude)) },
-            shape = RoundedCornerShape(corner = CornerSize(10.dp)),
-            readOnly = true
-        )
-        OutlinedTextField(
-            modifier = Modifier.width(LocalConfiguration.current.screenWidthDp.dp / 100 * 48).padding(5.dp),
-            value = latitude.value.substring(0, latitude.value.length - 4),
+            modifier = Modifier.width(LocalConfiguration.current.screenWidthDp.dp / 100 * 45).padding(5.dp),
+            value = latitude.value.substring(0, latitude.value.length - 5),
             onValueChange = { latitude_ ->
                 latitude.value = latitude_
             },
@@ -279,6 +267,18 @@ private fun LocationPicker(
             shape = RoundedCornerShape(corner = CornerSize(10.dp)),
             readOnly = true
         )
+
+        OutlinedTextField(
+            modifier = Modifier.width(LocalConfiguration.current.screenWidthDp.dp / 100 * 45).padding(5.dp),
+            value = longitude.value.substring(0, latitude.value.length - 5),
+            onValueChange = { longitude_ ->
+                longitude.value = longitude_
+            },
+            label = { Text(stringResource(R.string.longitude)) },
+            shape = RoundedCornerShape(corner = CornerSize(10.dp)),
+            readOnly = true
+        )
+
     }
 }
 

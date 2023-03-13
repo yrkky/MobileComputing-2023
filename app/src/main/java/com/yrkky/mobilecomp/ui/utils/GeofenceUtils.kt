@@ -26,7 +26,7 @@ import com.yrkky.mobilecomp.Graph
 import com.yrkky.mobilecomp.R
 import kotlin.random.Random
 
-const val GEOFENCE_RADIUS = 200
+const val GEOFENCE_RADIUS = 500
 const val GEOFENCE_DWELL_DELAY =  2 * 1000
 private val TAG: String = "GeofenceUtils"
 
@@ -39,7 +39,7 @@ class GeofenceUtils(private val context: Context) {
 
         val geofence = Geofence.Builder()
             .setRequestId(reminder.reminderId.toString())
-            .setCircularRegion(reminder.location_x!!, reminder.location_y!!, GEOFENCE_RADIUS.toFloat())
+            .setCircularRegion(reminder.location_x, reminder.location_y, GEOFENCE_RADIUS.toFloat())
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_DWELL)
             .setLoiteringDelay(GEOFENCE_DWELL_DELAY)
@@ -52,12 +52,14 @@ class GeofenceUtils(private val context: Context) {
             .build()
 
         val intent = Intent(context, GeofenceReceiver::class.java)
-            .putExtra("reminder_id", reminder.reminderId)
+            .putExtra("reminder_id", reminder.reminderId.toString())
             .putExtra("title", "Near reminder: ${reminder.title}")
             .putExtra(
                 "message",
                 "Content: ${reminder.message} Location: ${reminder.location_x}, ${reminder.location_y}"
             )
+
+        intent.action = "com.yrkky.mobilecomp.ACTION_GEOFENCE_EVENT"
 
         val pendingIntent = PendingIntent.getBroadcast(
             context, 0, intent, PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
@@ -82,68 +84,14 @@ class GeofenceUtils(private val context: Context) {
         }
     }
 
-    companion object {
-        fun removeGeofences(context: Context, triggeringGeofenceList: MutableList<Geofence>) {
-            val geofenceIdList = mutableListOf<String>()
-            for (entry in triggeringGeofenceList) {
-                geofenceIdList.add(entry.requestId)
-            }
-            LocationServices.getGeofencingClient(context).removeGeofences(geofenceIdList)
+    fun removeGeofences(context: Context, triggeringGeofenceList: MutableList<Geofence>) {
+        val geofenceIdList = mutableListOf<String>()
+        for (entry in triggeringGeofenceList) {
+            geofenceIdList.add(entry.requestId)
         }
+        LocationServices.getGeofencingClient(context).removeGeofences(geofenceIdList)
     }
 
-}
 
 
-
-fun showNotification(context: Context?, title: String, message: String) {
-    Log.i(TAG, "showNotification")
-    val intent = Intent()
-    intent.setClassName(context!!, "com.yrkky.mobilecomp.MainActivity").apply {
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-    }
-    val pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-
-    val CHANNEL_ID = "REMINDER_NOTIFICATION_CHANNEL"
-    var notificationId = 1589
-    notificationId += Random(notificationId).nextInt(1, 30)
-
-    val notificationBuilder = NotificationCompat.Builder(context!!.applicationContext, CHANNEL_ID)
-        .setSmallIcon(R.drawable.ic_launcher_foreground)
-        .setContentTitle("Nearby reminder: ${title}")
-        .setContentText("Message: ${message}")
-        .setStyle(
-            NotificationCompat.BigTextStyle()
-                .bigText("Message: ${message}")
-        )
-        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-        .setContentIntent(pendingIntent)
-
-    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            context.getString(R.string.app_name),
-            NotificationManager.IMPORTANCE_DEFAULT
-        ).apply {
-            description = context.getString(R.string.app_name)
-        }
-        notificationManager.createNotificationChannel(channel)
-    }
-    notificationManager.notify(notificationId, notificationBuilder.build())
-}
-
-private fun requestPermission(
-    context: Context,
-    permission: String,
-    requestPermission: () -> Unit
-) {
-    if (ContextCompat.checkSelfPermission(
-            context,
-            permission
-        ) != PackageManager.PERMISSION_GRANTED
-    ) {
-        requestPermission()
-    }
 }

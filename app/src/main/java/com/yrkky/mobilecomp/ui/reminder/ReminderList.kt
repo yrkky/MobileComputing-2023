@@ -92,8 +92,8 @@ private fun filterNearbyReminders(reminders: List<Reminder>, latitude: Double, l
             return@filter false
         }
 
-        val latitudeDifference = kotlin.math.abs(reminder.location_y - latitude)
-        val longitudeDifference = kotlin.math.abs(reminder.location_x - longitude)
+        val latitudeDifference = kotlin.math.abs(reminder.location_x - latitude)
+        val longitudeDifference = kotlin.math.abs(reminder.location_y - longitude)
 
         // reminder that are inside ~1km
         latitudeDifference <= 0.009009 && longitudeDifference <= 0.009009

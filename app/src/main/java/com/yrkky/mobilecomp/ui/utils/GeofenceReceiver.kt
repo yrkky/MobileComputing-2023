@@ -9,6 +9,7 @@ import androidx.annotation.RequiresApi
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofenceStatusCodes
 import com.google.android.gms.location.GeofencingEvent
+import com.google.android.gms.location.LocationServices
 import java.lang.Thread.sleep
 
 private val TAG: String = "GeofenceReceiver"
@@ -46,18 +47,26 @@ class GeofenceReceiver : BroadcastReceiver(){
                 val triggeringGeofences = geofencingEvent.triggeringGeofences
                 Log.i(TAG, "onReceive transition enter")
 
-                showNotification(context, title, message)
-                notifyGeofence(title, message)
+                val notificationHelper = NotificationHelper(context)
+                notificationHelper.notifyGeofence(title, message)
 
                 if (triggeringGeofences.isNullOrEmpty()) {
                     return
                 }
-                GeofenceUtils.removeGeofences(context, triggeringGeofences)
+                removeGeofences(context, triggeringGeofences)
 
             }
         }
 
 
+    }
+
+    private fun removeGeofences(context: Context, triggeringGeofenceList: MutableList<Geofence>) {
+        val geofenceIdList = mutableListOf<String>()
+        for (entry in triggeringGeofenceList) {
+            geofenceIdList.add(entry.requestId)
+        }
+        LocationServices.getGeofencingClient(context).removeGeofences(geofenceIdList)
     }
 
 

@@ -18,10 +18,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
-import com.google.android.gms.location.Geofence
-import com.google.android.gms.location.GeofencingClient
-import com.google.android.gms.location.GeofencingRequest
-import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.*
 import com.yrkky.core.domain.entity.Category
 import com.yrkky.core.domain.entity.Reminder
 import com.yrkky.core.domain.repository.CategoryRepository
@@ -134,9 +131,10 @@ class MainViewModel @Inject constructor(
     }
 
     private fun createGeofence(reminder: Reminder) {
+        Log.i("createGeofence", "Inside createGeofence ${reminder.location_x} ${reminder.location_y}")
         val geofence = Geofence.Builder()
             .setRequestId(reminder.title)
-            .setCircularRegion(reminder.location_x!!, reminder.location_y!!, GEOFENCE_RADIUS.toFloat())
+            .setCircularRegion(reminder.location_x, reminder.location_y, GEOFENCE_RADIUS.toFloat())
             .setExpirationDuration(Geofence.NEVER_EXPIRE)
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_DWELL)
             .setLoiteringDelay(GEOFENCE_DWELL_DELAY)
@@ -148,8 +146,10 @@ class MainViewModel @Inject constructor(
             .addGeofence(geofence)
             .build()
 
+        Log.i("createGeofence", "Intent: ${reminder.reminderId} ${reminder.title} ${reminder.message} ")
+
         val intent = Intent(Graph.appContext, GeofenceReceiver::class.java)
-            .putExtra("reminder_id", reminder.reminderId)
+            .putExtra("reminder_id", reminder.reminderId.toString())
             .putExtra("title", "Near reminder: ${reminder.title}")
             .putExtra(
                 "message",
@@ -178,8 +178,8 @@ class MainViewModel @Inject constructor(
 
         geofencingClient.addGeofences(geofenceRequest, pendingIntent).run {
             addOnSuccessListener {
-                Toast.makeText(Graph.appContext, "Reminder: ${reminder.title} SET geofence", Toast.LENGTH_SHORT).show()
-                Log.i("CreateGeoFence", "Geofence Added 1")
+                Toast.makeText(Graph.appContext, "Reminder Geofence Set", Toast.LENGTH_SHORT).show()
+                Log.i("CreateGeoFence", "Geofence Added")
             }
             addOnFailureListener {
                 Log.e("CreateGeoFence", "Failed to add geofence: ${it.message}")
@@ -412,6 +412,12 @@ class MainViewModel @Inject constructor(
 
     init {
         createNotificationChannel()
+
+        LocationRequest.create().apply {
+            interval = 2000
+            fastestInterval = 1000
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
 
         fakeData().forEach {
             viewModelScope.launch {

@@ -18,13 +18,11 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         LocationRequest.create().apply {
             interval = 10000
             fastestInterval = 3000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
-
         setContent {
             MobileComputingTheme (darkTheme = true) {
                 // A surface container using the 'background' color from the theme
